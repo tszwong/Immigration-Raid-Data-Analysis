@@ -3,7 +3,7 @@ from dotenv import load_dotenv
 import csv
 import os
 
-load_dotenv()
+load_dotenv("api_keys.env")
 api_key = os.getenv("SERPAPI_GOOGLE_SEARCH_KEY")
 
 # Prompt the user for search query and date range
@@ -16,7 +16,7 @@ date_range = f"{start_date}-{end_date}"
 params = {
   "engine": "google",
   "q": search_query,
-  "api_key": "4669876b30ad3b901cbb780c3fe99d0428cd84a87d7f39cfec9a92e3e3823ffe",
+  "api_key": api_key,
   "google_domain": "google.com",
   "gl": "us",
   "hl": "en",
