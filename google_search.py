@@ -9,6 +9,7 @@ load_dotenv("api_keys.env")
 api_key = os.getenv("SERPAPI_GOOGLE_SEARCH_KEY")
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 # allow to query based on specific params
 def calc_date(start_date):
     input_date = datetime.strptime(start_date, "%m/%d/%y")
@@ -96,6 +97,8 @@ def search_and_export(data):
         
         i += 1 # limit counter for testing
 =======
+=======
+>>>>>>> 01b12fa53c01e5aaf35331f731b69decd92cf08e
 # allow users to query based on specific params
 search_query = input("Enter your search query: ")
 start_date = input("Enter the start date (format m/d/yyyy): ")
