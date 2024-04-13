@@ -10,13 +10,13 @@ api_key = os.getenv("SERPAPI_GOOGLE_SEARCH_KEY")
 
 # allow to query based on specific params
 def calc_date(start_date):
-    input_date = datetime.strptime(start_date, "%m/%d/%y")
+    input_date = datetime.strptime(start_date, "%m/%d/%Y")
 
     # calculations, 2 days before, 3 weeks after
     two_days_before = input_date - timedelta(days=2)
     three_weeks_after = input_date + timedelta(days=21)
     
-    return two_days_before.strftime("%m/%d/%y"), three_weeks_after.strftime("%m/%d/%y")
+    return two_days_before.strftime("%m/%d/%y"), three_weeks_after.strftime("%m/%d/%Y")
 
 def parse_csv(input_csv):
     columns = ["arrestdate", "CountyName", "ST"]  # columns where we want to select the data from
@@ -36,7 +36,7 @@ def parse_csv(input_csv):
     return data
 
 # helper function that will do all the searching and writing into the output csv file
-def helper(query, date, csv_path):
+def helper(query, county, state, start, end, csv_path):
     params = {
         "engine": "google",
         "q": query,
@@ -44,21 +44,26 @@ def helper(query, date, csv_path):
         "google_domain": "google.com",
         "gl": "us",
         "hl": "en",
-        "tbs": f"cdr:1,cd_min:{date},cd_max:{date}", # specific time search parameter
+        "tbs": f"cdr:1,cd_min:{start},cd_max:{end}",
+        "num": 10,
         "sort": "date"
     }
     try:
         search = GoogleSearch(params)
+        # print(search)  # for testing
         results = search.get_dict()
+        # print(results)  # for testing
         organic_results = results.get("organic_results", [])
         print(f"Results found: {len(organic_results)}")  # debugging line
 
         # Open the file with 'a' to append to the existing content
         with open(csv_path, 'a', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=["Query", "Title", "Link", "Date"])
+            writer = csv.DictWriter(file, fieldnames=["County", "State", "Title", "Link", "Date"])
             for result in organic_results:
                 writer.writerow({
-                    "Query": query,
+                    # "Query": query,
+                    "County": county,
+                    "State": state,
                     "Title": result.get("title", "N/A"),
                     "Link": result.get("link", "N/A"),
                     "Date": result.get("date", "N/A")
@@ -75,25 +80,31 @@ def search_and_export(data):
     # check if the file exists, otherwise create and write the header
     if not os.path.exists(output_csv):
         with open(output_csv, 'w', newline='', encoding='utf-8') as file:
-            writer = csv.DictWriter(file, fieldnames=["Query", "Title", "Link", "Date"])
+            writer = csv.DictWriter(file, fieldnames=["County", "State", "Title", "Link", "Date"])
             writer.writeheader()
 
     # Process each query and append results to the CSV
-    i = 0  # limit counter for testing
+    # i = 0  # limit counter for testing
     for arrestdate, county, state in data:
-        if i == 1: break  # limit counter for testing
+        # if i == 2: break  # limit counter for testing
         # print(arrestdate)  # for debugging
 
-        start_date, end_date = calc_date(arrestdate)
-        print(start_date, end_date, county, state)
+        # since the dates provided in csv are m/dd/yy we need to fix the year
+        year = arrestdate[-2:]
+        no_year = arrestdate[:-2]
+        year = "20" + year
+        arrestdate = no_year + year
+        # print(arrestdate)  # for testing
 
-        query1 = f"Immigration Raids, {county}, {state}, {start_date}"
-        query2 = f"Immigration Raids, {county}, {state}, {end_date}"
-        print(query1, query2)
-        helper(query1, start_date, output_csv)
-        helper(query2, end_date, output_csv)
+        # start_date, end_date = calc_date(arrestdate)
+        start_date, end_date = calc_date(arrestdate)
+        print(start_date, end_date, county, state)  # for testing
+
+        query = f"Immigration Raids, {county}, {state}"
+        # print(query)  # for testing
+        helper(query, county, state, start_date, end_date, output_csv)
         
-        i += 1 # limit counter for testing
+        # i += 1 # limit counter for testing
 
 def main():
     desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
